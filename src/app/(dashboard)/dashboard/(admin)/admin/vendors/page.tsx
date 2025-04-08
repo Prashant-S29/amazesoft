@@ -1,18 +1,14 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 
 // icons
 import { AddIcon } from "~/icons";
 
 // components
-import { InviteVendorDialog } from "~/components/admin/feature";
+import { InviteVendorDialog, VendorTable } from "~/components/admin/feature";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/server";
 
-const Vendors: React.FC = async () => {
-  // mutations
-  const { data: allVendors } = await api.admin.getAllVendors();
-
+const Vendors: React.FC = () => {
   return (
     <main className="bg-accent flex min-h-screen w-full flex-col gap-3 p-5 pt-[70px]">
       <section className="flex w-full items-center justify-between">
@@ -38,13 +34,9 @@ const Vendors: React.FC = async () => {
       </section>
 
       {/* all vendors */}
-      <section>
-        {allVendors ? (
-          <section>{JSON.stringify(allVendors)}</section>
-        ) : (
-          <section>no vendors</section>
-        )}
-      </section>
+      <Suspense fallback={<div>Loading...</div>}>
+        <VendorTable />
+      </Suspense>
     </main>
   );
 };
