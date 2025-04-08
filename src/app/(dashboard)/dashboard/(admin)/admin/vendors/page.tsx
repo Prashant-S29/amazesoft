@@ -4,11 +4,19 @@ import Link from "next/link";
 // icons
 import { AddIcon } from "~/icons";
 
+// utils
+import { checkAuth_server } from "~/utils/actions/checkAuth_server";
+
 // components
 import { InviteVendorDialog, VendorTable } from "~/components/admin/feature";
 import { Button } from "~/components/ui/button";
 
-const Vendors: React.FC = () => {
+const Vendors: React.FC = async () => {
+  await checkAuth_server({
+    redirectTo: "/login",
+    role: "Admin",
+  });
+
   return (
     <main className="bg-accent flex min-h-screen w-full flex-col gap-3 p-5 pt-[70px]">
       <section className="flex w-full items-center justify-between">
