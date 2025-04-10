@@ -21,6 +21,10 @@ import { IoSettingsSharp as SettingsFilled } from "react-icons/io5";
 // social icons
 import { IoLogoGithub as GitHubIcon } from "react-icons/io5";
 
+// theme icons
+import { FiMoon as MoonIcon } from "react-icons/fi";
+import { FiSun as SunIcon } from "react-icons/fi";
+
 const DashboardIcons = {
   DashboardOutline,
   DashboardFilled,
@@ -36,9 +40,15 @@ const SocialIcons = {
   GitHubIcon,
 };
 
+const ThemeIcons = {
+  MoonIcon,
+  SunIcon,
+};
+
 export {
   SocialIcons,
   DashboardIcons,
+  ThemeIcons,
   LogoutIcon,
   EyeVisible,
   EveHidden,

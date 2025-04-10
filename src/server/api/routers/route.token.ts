@@ -17,19 +17,21 @@ export const tokenRouter = createTRPCRouter({
     .input(z.object({ tokenId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       // get token from db
-      const token = await ctx.db.user.findUnique({
+      const token = await ctx.db.vendorInvitation.findUnique({
         where: {
           id: input.tokenId,
         },
         select: {
           email: true,
-          invitationToken: true,
+          token: true,
         },
       });
 
+      console.log("token from db", token);
+
       console.log(token);
 
-      if (!token?.invitationToken) {
+      if (!token?.token) {
         return {
           data: null,
           error: "Invitation not found",
@@ -38,14 +40,23 @@ export const tokenRouter = createTRPCRouter({
       }
 
       const decodedToken = await decodeToken<VendorInvitationTokenPayload>(
-        token.invitationToken,
+        token.token,
       );
 
-      if (!decodedToken.data?.data.email || !decodedToken.data?.data.password) {
+      console.log("decodedToken", decodedToken);
+
+      if (!decodedToken.data?.data.email) {
+        // delete invitation
+        await ctx.db.vendorInvitation.delete({
+          where: {
+            id: input.tokenId,
+          },
+        });
+
         return {
           data: null,
           error: "Email not found in the token",
-          message: "Invitation not found",
+          message: decodedToken.message,
         };
       }
 
@@ -67,7 +78,6 @@ export const tokenRouter = createTRPCRouter({
       return {
         data: {
           email: decodedToken.data.data.email,
-          password: decodedToken.data.data.password,
           isTokenValid,
         },
         error: null,

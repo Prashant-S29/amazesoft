@@ -53,20 +53,20 @@ export const vendorRouter = createTRPCRouter({
     }),
 
   acceptInvitation: publicProcedure
-    .input(z.object({ mail: z.string().email("Invalid email") }))
+    .input(z.object({ tokenId: z.string().min(1, "tokenId is required") }))
     .mutation(async ({ input, ctx }) => {
+      // TODO: delete the token
       // check if the user exists and is a vendor
-      const isVendorExists = await ctx.db.user.findUnique({
+      const acceptVendorInvitation = await ctx.db.vendorInvitation.update({
         where: {
-          email: input.mail,
+          id: input.tokenId,
         },
-        select: {
-          id: true,
-          role: true,
+        data: {
+          status: "Accepted",
         },
       });
 
-      if (!isVendorExists || isVendorExists.role !== "Vendor") {
+      if (!acceptVendorInvitation?.id) {
         return {
           data: null,
           error: "User does not exist or is not a vendor",
@@ -74,35 +74,10 @@ export const vendorRouter = createTRPCRouter({
         };
       }
 
-      // update invitation status
-      const updateInvitationStatusRes = await ctx.db.user.update({
-        where: {
-          email: input.mail,
-        },
-        data: {
-          status: "Accepted",
-        },
-        select: {
-          email: true,
-          status: true,
-        },
-      });
-
-      if (
-        !updateInvitationStatusRes?.email ||
-        updateInvitationStatusRes.status !== "Accepted"
-      ) {
-        return {
-          data: null,
-          error: "Error updating user",
-          message: "Unexpected error, please try again",
-        };
-      }
-
       return {
-        data: true,
-        error: null,
+        data: acceptVendorInvitation,
         message: "Invitation accepted successfully",
+        error: null,
       };
     }),
 });

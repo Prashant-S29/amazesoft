@@ -20,7 +20,7 @@ export const SideMenu: React.FC = () => {
             key={index}
             variant={pathName === data.href ? "secondary" : "ghost"}
             asChild
-            className="justify-start text-[13px]"
+            className={`justify-start text-[13px] ${pathName !== data.href && "text-primary/50"}`}
           >
             <Link href={data.href}>
               {pathName === data.href ? (

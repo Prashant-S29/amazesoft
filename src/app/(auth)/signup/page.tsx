@@ -16,15 +16,22 @@ export const generateMetadata = () =>
     url: "/signup",
   });
 
-const SignUp: React.FC = async () => {
+interface Props {
+  searchParams: Promise<{
+    tokenId: string;
+  }>;
+}
+
+const SignUp: React.FC<Props> = async ({ searchParams }) => {
   const session = await auth();
+  const tokenId = (await searchParams).tokenId;
 
   if (session?.user.id) {
     redirect("/");
   }
   return (
     <div className="relative flex h-screen w-full flex-col items-center justify-center">
-      <SignupForm />
+      <SignupForm tokenId={tokenId} />
     </div>
   );
 };

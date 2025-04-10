@@ -41,7 +41,11 @@ import { useRouter } from "next/navigation";
 // Form data type inferred from Zod schema
 type UserSignupFormValues = z.infer<typeof UserSignupSchema>;
 
-export const SignupForm: React.FC = () => {
+interface Props {
+  tokenId?: string;
+}
+
+export const SignupForm: React.FC<Props> = ({ tokenId }) => {
   const { status } = useSession();
   const mounted = useMounted();
 
@@ -62,7 +66,11 @@ export const SignupForm: React.FC = () => {
     console.log(data);
 
     // signup the user
-    const res = await userSignupMutation.mutateAsync(data);
+    const res = await userSignupMutation.mutateAsync({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    });
 
     if (!res.data?.id) {
       toast.error(res.message);
@@ -86,6 +94,10 @@ export const SignupForm: React.FC = () => {
         return;
       }
       toast.success("Congrats, you are onboarded!");
+      if (tokenId) {
+        router.push(`/vendor/join?tokenId=${tokenId}`);
+        return;
+      }
       router.push("/");
     } catch (error) {
       console.error("Login failed", error);
@@ -109,6 +121,7 @@ export const SignupForm: React.FC = () => {
             <CardTitle className="text-md">Sign Up</CardTitle>
             <CardDescription className="-mt-2">
               Let&apos;s get you onboarded.
+              {/* {JSON.stringify(form.formState.errors)} */}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -207,7 +220,7 @@ export const SignupForm: React.FC = () => {
                   </Button> */}
                 </div>
 
-                <p className="mt-2 text-center text-xs">
+                <p className="text-primary/50 mt-2 text-center text-xs">
                   Already have an account?{" "}
                   <Link href="/login" className="underline underline-offset-2">
                     Login

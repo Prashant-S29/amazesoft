@@ -13,7 +13,8 @@ import { toast } from "sonner";
 import { api } from "~/trpc/react";
 // import { signIn } from "~/server/auth";
 import { useSession } from "next-auth/react";
-import { signInVendor } from "~/utils/actions/auth-actions";
+import { Role } from "@prisma/client";
+import { useMounted } from "~/hooks";
 
 type VerificationState =
   | "verified"
@@ -30,18 +31,11 @@ export const JoinAsAVendorPage: React.FC<Props> = ({ tokenId }) => {
   const router = useRouter();
   const session = useSession();
 
-  const [pageLoading, setPageLoading] = useState(false);
+  // useEffect(() => {
+  //   setPageLoading(true);
 
-  useEffect(() => {
-    setPageLoading(true);
-
-    if (session?.data?.user.id) {
-      setPageLoading(false);
-      router.push("/dashboard");
-      return;
-    }
-    setPageLoading(false);
-  }, [router, session?.data?.user.id]);
+  //   setPageLoading(false);
+  // }, [router, session?.data?.user.id]);
 
   // states
   const [state, setVerificationState] = useState<VerificationState>("loading");
@@ -52,7 +46,7 @@ export const JoinAsAVendorPage: React.FC<Props> = ({ tokenId }) => {
   const verifyInvitationMutation =
     api.token.handleVendorInvitationToken.useMutation();
 
-  const acceptInvitationMutation = api.vendor.acceptInvitation.useMutation();
+  const joinAsVendorMutation = api.user.joinAsVendor.useMutation();
 
   const verifyToken = useCallback(async () => {
     const redirectToHome = () => {
@@ -90,7 +84,6 @@ export const JoinAsAVendorPage: React.FC<Props> = ({ tokenId }) => {
       ) {
         setVerificationState("error");
         toast.error(tokenVerificationRes.message);
-        // router.push("/");
         redirectToHome();
 
         return;
@@ -100,61 +93,76 @@ export const JoinAsAVendorPage: React.FC<Props> = ({ tokenId }) => {
       setVerificationState("verified");
 
       // accept invitation
-      const acceptInvitationRes = await acceptInvitationMutation.mutateAsync({
-        mail: tokenVerificationRes.data.email,
-      });
+      const joinAsVendorRes = await joinAsVendorMutation.mutateAsync();
 
-      if (!acceptInvitationRes.data) {
-        toast.error(acceptInvitationRes.message);
-        // router.push("/");
-        redirectToHome();
-
+      if (!joinAsVendorRes.data?.id) {
+        toast.error(joinAsVendorRes.message);
         return;
       }
 
-      // signin the vendor
+      toast.success("Congrats, you are onboarded!");
 
-      await signInVendor({
-        email: tokenVerificationRes.data.email,
-        password: tokenVerificationRes.data.password,
+      // update user session
+      await session.update({
+        role: Role.Vendor,
       });
 
-      // await signIn("credentials", {
-      //   email: tokenVerificationRes.data.email,
-      //   password: null,
-      //   redirect: false,
-      // });
+      await session.update();
 
-      // if (!res?.ok || res.error) {
-      //   toast.error("unexpected error");
-      //   return;
-      // }
+      // revalidatePath("/");
 
       setIsSettingAccLoading(false);
-      router.push("/dashboard");
+      router.push("/vendor/dashboard");
     } catch (error) {
       console.error("Verification failed:", error);
       setVerificationState("error");
       toast.error("Verification failed");
       router.push("/");
     }
-  }, [tokenId, verifyInvitationMutation, acceptInvitationMutation, router]);
+  }, [
+    router,
+    tokenId,
+    verifyInvitationMutation,
+    joinAsVendorMutation,
+    session,
+  ]);
+
+  // useEffect(() => {
+  //   if (session?.data?.user.id) {
+  //     router.push("/");
+  //   } else if (tokenId) {
+  //     router.push(`/signup?tokenId=${tokenId}`);
+  //   } else {
+  //     router.push("/signup");
+  //   }
+  // }, [router, session?.data?.user.id, tokenId]);
 
   useEffect(() => {
-    void verifyToken();
+    if (session.data?.user.id && session?.data?.user.role !== "User") {
+      router.push(`/${(session?.data?.user.role).toLowerCase()}/dashboard`);
+      return;
+    } else if (!session.data?.user.id && tokenId) {
+      router.push(`/signup?tokenId=${tokenId}`);
+      return;
+    } else if (
+      session.data?.user.id &&
+      session?.data?.user.role === "User" &&
+      tokenId
+    ) {
+      void verifyToken();
+      return;
+    } else {
+      router.push("/signup");
+      return;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (pageLoading) {
-    return (
-      <main className="bg-accent flex h-screen w-full items-center justify-center">
-        <p>loading...</p>
-      </main>
-    );
-  }
+  const mounted = useMounted();
+  if (!mounted) return null;
 
   return (
-    <main className="bg-accent flex h-screen w-full items-center justify-center">
+    <main className="flex h-screen w-full items-center justify-center">
       <VerifyInvitationBox
         state={state}
         isSettingAccLoading={isSettingAccLoading}
@@ -272,7 +280,7 @@ const VerifyInvitationBox: React.FC<VerifyInvitationProps> = ({
   const { title, description } = getMessage();
 
   return (
-    <div className="w-[400px] rounded-lg border bg-white px-4 py-3">
+    <div className="bg-secondary w-[400px] rounded-lg border px-4 py-3">
       <div>
         {title}
         {description}

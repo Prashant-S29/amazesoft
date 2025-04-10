@@ -1,6 +1,5 @@
 "use client";
 
-import type { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -179,7 +178,7 @@ export const LoginForm: React.FC = () => {
                   </Button> */}
                 </div>
 
-                <p className="mt-2 text-center text-xs">
+                <p className="text-primary/50 mt-2 text-center text-xs">
                   Don&apos;t have an account?{" "}
                   <Link href="/signup" className="underline underline-offset-2">
                     Signup

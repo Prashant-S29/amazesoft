@@ -1,13 +1,20 @@
+// trpc
+import { createTRPCRouter } from "../trpc";
+import { env } from "~/env";
 import { protectedProcedure } from "~/server/api/middleware/middleware.protected";
 
+// schema
+import { VendorInvitationMailSchema } from "~/schema/mail";
+
+// types
 import { type SendMailOptions } from "nodemailer";
-import { transporter } from "~/utils/mail/mail";
+
+// react mail components
 import { render } from "@react-email/components";
 
+// utils
+import { transporter } from "~/utils/mail/mail";
 import { VendorInvitationMail } from "~/utils/mail/template";
-import { createTRPCRouter } from "../trpc";
-import { VendorInvitationMailSchema } from "~/schema/mail";
-import { env } from "~/env";
 
 export const mailRouter = createTRPCRouter({
   sendVendorInvitationMail: protectedProcedure

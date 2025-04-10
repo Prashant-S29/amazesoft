@@ -7,6 +7,7 @@ import { NotificationIcon } from "~/icons";
 // components
 import { Button } from "~/components/ui/button";
 import { HeaderProfile } from "../HeaderProfile";
+import { ThemeToggler } from "~/components/common";
 
 export const Header: React.FC = async () => {
   return (
@@ -15,6 +16,7 @@ export const Header: React.FC = async () => {
         Amaze Soft Technologies
       </Link>
       <nav className="flex items-center gap-2">
+        <ThemeToggler />
         <Button size="icon" variant="ghost">
           <NotificationIcon />
         </Button>

@@ -8,10 +8,11 @@ import { auth } from "~/server/auth";
 
 // utils
 import { generateSeo, Providers } from "~/utils";
-import { Header, SideMenu } from "~/components/admin/layout";
+import { Header } from "~/components/admin/layout";
 
 // components
-// import { Navbar } from "~/components/layout";
+import { SidebarProvider } from "~/components/ui/sidebar";
+import { AppSidebar } from "~/components/admin/layout";
 
 export const generateMetadata = () =>
   generateSeo({
@@ -32,13 +33,16 @@ export default async function AdminLayout({
   return (
     <html lang="en" className={`${fonts.montserrat.className}`}>
       <body>
-        <Providers session={session}>
-          <Header />
-          <main className="bg-accent flex">
-            <SideMenu />
-            {children}
-          </main>
-        </Providers>
+        <SidebarProvider>
+          <Providers session={session}>
+            <Header />
+            <AppSidebar />
+            <main className="flex w-full">
+              {/* <SideMenu /> */}
+              {children}
+            </main>
+          </Providers>
+        </SidebarProvider>
       </body>
     </html>
   );

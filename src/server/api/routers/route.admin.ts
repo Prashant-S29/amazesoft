@@ -18,26 +18,110 @@ import { Role } from "@prisma/client";
 const createCaller = t.createCallerFactory(mailRouter);
 
 export const adminRouter = createTRPCRouter({
+  createNewVendor: adminProcedure
+    .input(InviteVendorFormSchema)
+    .mutation(async ({ input, ctx }) => {
+      //check if user already has an invitation
+      const isVendorExists = await ctx.db.user.findUnique({
+        where: {
+          email: input.email,
+        },
+        select: {
+          id: true,
+          role: true,
+        },
+      });
+
+      if (isVendorExists?.id) {
+        return {
+          data: null,
+          error: "This vendor already exists",
+          message: "This vendor already exists",
+        };
+      }
+
+      if (isVendorExists?.role === "Admin") {
+        return {
+          data: null,
+          error: "Cannot invite an admin as a vendor.",
+          message: "Cannot invite an admin as a vendor.",
+        };
+      }
+
+      // create new user
+      const createNewUserRes = await ctx.db.user.create({
+        data: {
+          email: input.email,
+          role: Role.Vendor,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!createNewUserRes.id) {
+        console.error("unable to create a new vendor");
+        return {
+          data: null,
+          error: "Unable to create new vendor",
+          message: "Unable to create new vendor",
+        };
+      }
+
+      return {
+        data: createNewUserRes,
+        error: null,
+        message: "Vendor created successfully",
+      };
+    }),
+
   inviteVendor: adminProcedure
     .input(InviteVendorFormSchema)
     .mutation(async ({ input, ctx }) => {
       const caller = createCaller(ctx);
 
       // check if user already has an invitation
-      const isInvitationExists = await ctx.db.user.findUnique({
+      const isInvitationExists = await ctx.db.vendorInvitation.findUnique({
         where: {
           email: input.email,
         },
         select: {
-          invitationToken: true,
+          id: true,
         },
       });
 
-      if (isInvitationExists?.invitationToken) {
+      if (isInvitationExists?.id) {
         return {
           data: null,
           error: "This vendor already has an invitation",
           message: "This vendor already has an invitation",
+        };
+      }
+
+      // check if the vendor is already exists
+      const isVendorExists = await ctx.db.user.findUnique({
+        where: {
+          email: input.email,
+        },
+        select: {
+          id: true,
+          role: true,
+        },
+      });
+
+      if (isVendorExists?.role === "Admin") {
+        return {
+          data: null,
+          error: "Cannot invite an admin as a vendor.",
+          message: "Cannot invite an admin as a vendor.",
+        };
+      }
+
+      if (isVendorExists?.role === "Vendor") {
+        return {
+          data: null,
+          error: "This vendor already exists",
+          message: "This vendor already exists",
         };
       }
 
@@ -55,20 +139,19 @@ export const adminRouter = createTRPCRouter({
         };
       }
 
-      // create new vendor
-      const createNewVendorRes = await ctx.db.user.create({
+      // create new invitation and save the token
+      const createNewInvitationRes = await ctx.db.vendorInvitation.create({
         data: {
           email: input.email,
-          role: Role.Vendor,
-          invitationToken: invitationToken.token,
-          password: input.password,
+          token: invitationToken.token,
+          // role: Role.Vendor,
         },
         select: {
           id: true,
         },
       });
 
-      if (!createNewVendorRes.id) {
+      if (!createNewInvitationRes.id) {
         console.error("unable to create a new vendor");
         return {
           data: null,
@@ -81,7 +164,7 @@ export const adminRouter = createTRPCRouter({
       const mailRes = await caller.sendVendorInvitationMail({
         receiverMail: input.email,
         senderName: ctx.session?.user.name ?? "Amaze Soft Technologies",
-        invitationLink: `http://localhost:3000/vendor/join?tokenId=${createNewVendorRes.id}`,
+        invitationLink: `http://localhost:3000/vendor/join?tokenId=${createNewInvitationRes.id}`,
       });
 
       if (!mailRes?.messageId) {
@@ -105,7 +188,7 @@ export const adminRouter = createTRPCRouter({
         role: Role.Vendor,
       },
       omit: {
-        invitationToken: true,
+        password: true,
       },
     });
 

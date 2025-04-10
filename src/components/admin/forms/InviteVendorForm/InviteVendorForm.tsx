@@ -37,7 +37,6 @@ export const InviteVendorForm: React.FC<InviteVendorFormProps> = ({
     resolver: zodResolver(InviteVendorFormSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
@@ -66,7 +65,7 @@ export const InviteVendorForm: React.FC<InviteVendorFormProps> = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-5"
+        className="flex flex-col gap-3"
       >
         <FormField
           control={form.control}
@@ -86,28 +85,6 @@ export const InviteVendorForm: React.FC<InviteVendorFormProps> = ({
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormControl>
-                <div className="flex flex-col gap-2">
-                  <Input
-                    {...field}
-                    placeholder="Vendor Dashboard Password"
-                    disabled={form.formState.isSubmitting}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <p>A vendor can update their password once they have been invited.</p>
-
         <div className="flex justify-end gap-2">
           <Button type="submit" loading={form.formState.isSubmitting} size="sm">
             Send Invitation

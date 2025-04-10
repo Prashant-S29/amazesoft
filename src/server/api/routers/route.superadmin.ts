@@ -39,7 +39,8 @@ export const superAdminRouter = createTRPCRouter({
           role: "Admin",
           name: input.name,
           email: input.email,
-          status: "Accepted",
+          // status: "Accepted",
+
           // TODO: hash the password
           password: input.password,
         },

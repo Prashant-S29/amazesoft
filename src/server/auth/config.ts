@@ -62,7 +62,6 @@ export const authConfig: NextAuthConfig = {
             name: true,
             email: true,
             password: true,
-            vendorId: true,
           },
         });
 
@@ -79,7 +78,6 @@ export const authConfig: NextAuthConfig = {
 
         // Return the user object
         return {
-          vendorId: res.vendorId ?? null,
           id: res.id,
           role: res.role,
           name: res.name,

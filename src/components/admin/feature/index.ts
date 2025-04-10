@@ -1,2 +1,2 @@
 export * from "./InviteVendorDialog";
-export * from "./VendorTable"
+export * from "./VendorTable";

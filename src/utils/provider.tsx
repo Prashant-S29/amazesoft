@@ -10,6 +10,7 @@ import { useMounted } from "~/hooks/useMounted";
 
 // toast
 import { Toaster } from "sonner";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 export const Providers = ({
   children,
@@ -27,8 +28,16 @@ export const Providers = ({
   return (
     <TRPCReactProvider>
       <SessionProvider session={session}>
-        <Toaster visibleToasts={3} richColors />
-        {children}
+        <NextThemesProvider
+          attribute="class"
+          defaultTheme="dark"
+          // forcedTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <Toaster visibleToasts={3} richColors />
+          {children}
+        </NextThemesProvider>
       </SessionProvider>
     </TRPCReactProvider>
   );
